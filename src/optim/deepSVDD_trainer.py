@@ -39,7 +39,7 @@ class DeepSVDDTrainer(BaseTrainer):
         self.test_time = None
         self.test_scores = None
 
-    def train(self, dataset: BaseADDataset, net: BaseNet):
+    def train(self, dataset: BaseADDataset, net: BaseNet, net_name: str):
         logger = logging.getLogger()
 
         # Set device for network
@@ -60,7 +60,10 @@ class DeepSVDDTrainer(BaseTrainer):
         # Initialize hypersphere center c (if c not loaded)
         if self.c is None:
             logger.info('Initializing center c...')
-            self.c = self.init_center_c(train_loader, net)
+            if net_name == 'pa_LeNet':
+                self.c = self.init_center_c_modify(train_loader, net)
+            else:
+                self.c = self.init_center_c(train_loader, net)
             print(self.c)
             logger.info('Center c initialized.')
 
@@ -203,7 +206,29 @@ class DeepSVDDTrainer(BaseTrainer):
         c[(abs(c) < eps) & (c > 0)] = eps
 
         return c
+    def init_center_c_modify(self, train_loader: DataLoader, net: BaseNet, eps=0.1):
+        """Initialize hypersphere center c as the mean from an initial forward pass on the data."""
+        n_samples = 0
+        c = torch.zeros((16, 16), device=self.device)
 
+        net.eval()
+        with torch.no_grad():
+            for data in train_loader:
+                # get the inputs of the batch
+                inputs, _, _ = data
+                inputs = inputs.to(self.device)
+                outputs = net(inputs)
+                outputs = torch.squeeze(outputs,dim=1)
+                n_samples += outputs.shape[0]
+                c += torch.sum(outputs, dim=0)
+
+        c /= n_samples
+
+        # If c_i is too close to 0, set to +-eps. Reason: a zero unit can be trivially matched with zero weights.
+        c[(abs(c) < eps) & (c < 0)] = -eps
+        c[(abs(c) < eps) & (c > 0)] = eps
+
+        return c
 
 def get_radius(dist: torch.Tensor, nu: float):
     """Optimally solve for radius R via the (1-nu)-quantile of distances."""
