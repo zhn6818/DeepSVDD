@@ -1,3 +1,5 @@
+By [DEEP_SVDD](https://github.com/lukasruff/Deep-SVDD-PyTorch)
+
 # PyTorch Implementation of Deep SVDD
 This repository provides a [PyTorch](https://pytorch.org/) implementation of the *Deep SVDD* method presented in our
 ICML 2018 paper ”Deep One-Class Classification”.
