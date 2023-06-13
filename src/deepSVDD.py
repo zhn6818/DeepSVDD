@@ -95,6 +95,15 @@ class DeepSVDD(object):
                                            device=device, n_jobs_dataloader=n_jobs_dataloader)
 
         return self.trainer.testimg(img, self.net)
+    
+    def testimg2(self, img, device: str = 'cuda', n_jobs_dataloader: int = 0):
+        """Tests the Deep SVDD model on the test data."""
+
+        if self.trainer is None:
+            self.trainer = DeepSVDDTrainer(self.objective, self.R, self.c, self.nu,
+                                           device=device, n_jobs_dataloader=n_jobs_dataloader)
+
+        return self.trainer.testimg2(img, self.net)
 
     def pretrain(self, dataset: BaseADDataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
                  lr_milestones: tuple = (), batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda',

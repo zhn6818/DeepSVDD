@@ -5,7 +5,7 @@ import random
 import numpy as np
 import os
 import cv2
-
+import matplotlib.pyplot as plt
 from utils.config import Config
 from utils.visualization.plot_images_grid import plot_images_grid
 from deepSVDD import DeepSVDD
@@ -123,8 +123,22 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
         deep_SVDD.load_model(model_path=load_model, load_ae=True)
         logger.info('Loading model from %s.' % load_model)
     
+    imgDir = '/data1/zhn/macdata/all_data/deepsvdd/moni-0001.png'
     
+    img = cv2.imread(imgDir)
+    img = img.astype(np.float32) / 255.
+    img = img.transpose(2, 0, 1)
+    img = np.expand_dims(img, axis=0)
+    img = torch.tensor(img)
     
+    score = deep_SVDD.testimg2(img, device=device)
+    score = score.cpu().numpy()
+    plt.subplots_adjust(top=1, bottom=0, right=1,  left=0, hspace=0, wspace=0)
+    plt.margins(0, 0)
+    plt.imshow(score)
+    plt.axis('off')
+    plt.savefig("./result/" + imgDir.split('/')[-1], dpi=200)
+    print('hello')
     
 if __name__ == '__main__':
     main()

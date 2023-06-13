@@ -183,6 +183,34 @@ class DeepSVDDTrainer(BaseTrainer):
             dist = torch.sum((outputs - self.c) ** 2)
             scores = dist
         return scores
+    
+    def testimg2(self, img, net: BaseNet):
+        logger = logging.getLogger()
+        net = net.to(self.device)
+        net.eval()
+
+        with torch.no_grad():
+
+            img = img.to(self.device)
+            outputs = net(img)
+            outputs = outputs.squeeze()
+
+        scores = torch.zeros_like(outputs)
+        
+        ll = (int)(self.c.size()[0] / 2)
+        outsize = outputs.size()
+        for dim1 in range(outsize[0]):
+            for dim2 in range(outsize[1]):
+                if dim1 - ll < 0 or dim1 + ll > outsize[0] or dim2 - ll < 0 or dim2 + ll > outsize[1]:
+                    continue
+                tmp = outputs[dim1 - ll : dim1 + ll, dim2 - ll : dim2 + ll]
+                dist = torch.sum((tmp - self.c) ** 2)
+                scores[dim1,dim2] = dist
+        # scores = dist
+        
+        return scores
+    
+    
 
     def init_center_c(self, train_loader: DataLoader, net: BaseNet, eps=0.1):
         """Initialize hypersphere center c as the mean from an initial forward pass on the data."""
