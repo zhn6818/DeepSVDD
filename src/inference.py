@@ -11,9 +11,6 @@ from utils.visualization.plot_images_grid import plot_images_grid
 from deepSVDD import DeepSVDD
 from datasets.main import load_dataset
 
-
-patchsize = 64
-
 ################################################################################
 # Settings
 ################################################################################
@@ -58,8 +55,6 @@ patchsize = 64
 @click.option('--normal_class', type=int, default=0,
               help='Specify the normal class of the dataset (all other classes are considered anomalous).')
 
-
-
 def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, objective, nu, device, seed,
          optimizer_name, lr, n_epochs, lr_milestone, batch_size, weight_decay, pretrain, ae_optimizer_name, ae_lr,
          ae_n_epochs, ae_lr_milestone, ae_batch_size, ae_weight_decay, n_jobs_dataloader, normal_class):
@@ -97,7 +92,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     logger.info('Dataset: %s' % dataset_name)
     logger.info('Normal class: %d' % normal_class)
     logger.info('Network: %s' % net_name)
-
+    
     # If specified, load experiment config from JSON-file
     if load_config:
         cfg.load_config(import_json=load_config)
@@ -106,7 +101,7 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     # Print configuration
     logger.info('Deep SVDD objective: %s' % cfg.settings['objective'])
     logger.info('Nu-paramerter: %.2f' % cfg.settings['nu'])
-
+    
     # Set seed
     if cfg.settings['seed'] != -1:
         random.seed(cfg.settings['seed'])
@@ -127,57 +122,9 @@ def main(dataset_name, net_name, xp_path, data_path, load_config, load_model, ob
     if load_model:
         deep_SVDD.load_model(model_path=load_model, load_ae=True)
         logger.info('Loading model from %s.' % load_model)
-
     
-    readimg_func("/data1/zhn/macdata/all_data/deepsvdd/moni-0003.png", deep_SVDD, device)
-
-    filepath = '/data1/zhn/macdata/all_data/deepsvdd/highway/'
-
-    # for i in range(30):
-    #     imgpath = filepath + str(i + 1) + ".png"
-    #     img = cv2.imread(imgpath)
-    #     img = cv2.resize(img, (patchsize, patchsize), interpolation=cv2.INTER_CUBIC)
-    #     img = img.astype(np.float32) / 255.
-    #     img = img.transpose(2, 0, 1)
-    #     img = np.expand_dims(img, axis=0)
-    #     img = torch.tensor(img)
-    #     score = deep_SVDD.testimg(img, device=device)
-    #     print ('score', score.cpu().item())
-
-def testImg(img, deep_SVDD, device):
     
-    img = cv2.resize(img, (patchsize, patchsize), interpolation=cv2.INTER_CUBIC)
-    img = img.astype(np.float32) / 255.
-    img = img.transpose(2, 0, 1)
-    img = np.expand_dims(img, axis=0)
-    img = torch.tensor(img)
-    score = deep_SVDD.testimg(img, device=device)
-    return score
-
-def readimg_func(filename : str, deep_SVDD, device):
     
-    file_name = filename.split('/')[-1]
     
-    img = cv2.imread(filename)
-    halflength = (int)(patchsize / 2)
-    
-    resize_size = 4
-    
-    imgblack = np.zeros(((int)(img.shape[0] / resize_size), (int)(img.shape[1] / resize_size)), np.float64)
-    
-    for i in range(0, img.shape[0], resize_size):
-        
-        print("result: ", i)
-        for j in range(0, img.shape[1], resize_size):
-            if i - halflength < 0 or j - halflength < 0 or i + halflength >= img.shape[0] or j + halflength >= img.shape[1]:
-                continue
-            crop = img[i - halflength : i + halflength, j - halflength : j + halflength]
-            score = testImg(crop, deep_SVDD, device)
-            imgblack[(int)(i / resize_size), (int)(j / resize_size)] = score
-    cv2.imwrite(file_name, imgblack)
-    
-    print("hello")
-    
-
 if __name__ == '__main__':
     main()

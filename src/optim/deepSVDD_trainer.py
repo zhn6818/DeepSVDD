@@ -180,7 +180,7 @@ class DeepSVDDTrainer(BaseTrainer):
 
             img = img.to(self.device)
             outputs = net(img)
-            dist = torch.sum((outputs - self.c) ** 2, dim=1)
+            dist = torch.sum((outputs - self.c) ** 2)
             scores = dist
         return scores
 
